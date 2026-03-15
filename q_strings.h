@@ -1,17 +1,15 @@
-#pragma once
+#ifndef Q_STRINGS_H
+#define Q_STRINGS_H
 
-#include <stddef.h>
+#include "q_def.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
-#define S(lit) ((s8){.data = (char *)lit, .len = (ptrdiff_t)sizeof(lit) - 1})
-
+#define S(lit) ((s8){.data = (char *)lit, .len = (size)sizeof(lit) - 1})
 
 typedef struct {
 	char *data;
-	ptrdiff_t len;
+	size len;
 } s8;
 
 typedef struct {
@@ -20,15 +18,31 @@ typedef struct {
 	bool ok;
 } snip;
 
+inline static bool s8_is_valid(s8 a);
+inline static bool s8_eq(s8 a, s8 b);
+static bool s8_is_empty(s8 s);
+static bool s8_is_null(s8 s);
+static bool s8_to_cstr(s8 s, char *buf, usize bufcap);
+static int s8_eprint(s8 s);
+static int s8_fputs(FILE *out, const s8 s);
+static int s8_fwrite(FILE *out, s8 s);
+static int s8_print(s8 s);
+static s8 slice(char *start, char *end);
+static snip cut(s8 s, char c);
+
+#ifdef Q_STRINGS_IMPLEMENTATION
+
+#include <string.h>
+
 // Interop / safety utilities
-bool s8_is_null(s8 s) {
+static bool s8_is_null(s8 s) {
 	if (s.data == NULL) {
 		return true;
 	}
 	return false;
 }
 
-bool s8_is_empty(s8 s) {
+static bool s8_is_empty(s8 s) {
 	if (s.len == 0) {
 		return true;
 	}
@@ -45,7 +59,7 @@ int s8_fwrite(FILE *out, s8 s) {
 	if (out == NULL) {
 		return -1;
 	}
-	return fwrite(s.data, sizeof(s.data[0]), (size_t)s.len, out);
+	return fwrite(s.data, sizeof(s.data[0]), (usize)s.len, out);
 }
 
 int s8_fputs(FILE *out, const s8 s) {
@@ -114,13 +128,12 @@ int s8_eprint(s8 s) {
 }
 
 // Comparisons / predicates
-bool s8_eq(s8 a, s8 b); // length + memcmp
-int s8_cmp(s8 a, s8 b); // lexicographic compare (<0, 0, >0)
+static int s8_cmp(s8 a, s8 b); // lexicographic compare (<0, 0, >0)
 
 
 // Copy-out / cs8ing interop (only when needed)
 // copy + NUL; false if too small
-bool s8_to_cstr(s8 s, char *buf, size_t bufcap) {
+static bool s8_to_cstr(s8 s, char *buf, usize bufcap) {
 
     if (s8_is_valid(s)) {
         return false;
@@ -130,7 +143,7 @@ bool s8_to_cstr(s8 s, char *buf, size_t bufcap) {
         return false;
     }
 
-    for (ptrdiff_t i = 0; i < s.len; ++i) {
+    for (size i = 0; i < s.len; ++i) {
         buf[i] = s.data[i];
     }
     buf[s.len] = '\0';
@@ -138,7 +151,7 @@ bool s8_to_cstr(s8 s, char *buf, size_t bufcap) {
     return true;
 }
 
-bool s8_eq(s8 a, s8 b) {
+inline static bool s8_eq(s8 a, s8 b) {
 
     if (a.len != b.len) {
         return false;
@@ -151,7 +164,7 @@ bool s8_eq(s8 a, s8 b) {
 
 }
 
-s8 slice(char *start, char *end) {
+static s8 slice(char *start, char *end) {
 
     s8 s = {0};
 	s.data = start;
@@ -160,7 +173,7 @@ s8 slice(char *start, char *end) {
 
 }
 
-snip cut(s8 s, char c) {
+static snip cut(s8 s, char c) {
 
     snip n = {0};
 	if (!s.len) {
@@ -188,3 +201,6 @@ snip cut(s8 s, char c) {
 inline static bool s8_is_valid(s8 a) {
     return !s8_is_null(a) || !s8_is_empty(a);
 }
+
+#endif // Q_STRINGS_IMPLEMENTATION
+#endif // Q_STRINGS_H
