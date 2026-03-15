@@ -1,4 +1,6 @@
-#pragma once
+// simple intrusive circular linked list
+#ifndef Q_LIST_H
+#define Q_LIST_H
 
 #include "q_def.h"
 #include <stdbool.h>
@@ -9,6 +11,17 @@ typedef struct list list;
 struct list {
 	list *next, *prev;
 };
+
+static bool _list_add_valid(list *a, list *prev, list *next);
+static void _list_add(list *a, list *prev, list *next);
+static void list_add(list *a, list *target);
+static void list_add_before(list *a, list *target);
+static inline bool _list_valid_del(list *a);
+static void list_del(list *target);
+static bool _list_valid_move(list *target, list *prev, list *next);
+static void list_move(list *target, list *prev, list *next);
+
+#ifdef Q_LIST_IMPLEMENTATION
 
 static bool _list_add_valid(list *a, list *prev, list *next) {
 
@@ -94,5 +107,7 @@ static void list_move(list *target, list *prev, list *next) {
 
 	prev->next = target;
 	next->prev = target;
-
 }
+
+#endif // Q_LIST_IMPLEMENTATION
+#endif // Q_LIST_H
